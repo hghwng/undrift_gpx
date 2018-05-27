@@ -1,0 +1,9 @@
+[package]
+name = "undrift_gpx"
+version = "0.1.0"
+authors = ["Hugh Wang <hghwng@gmail.com>"]
+
+[dependencies]
+undrift_gps = "0.1.1"
+quick-xml = "0.12.1"
+failure = "0.1.1"
