@@ -3,11 +3,12 @@ extern crate undrift_gps;
 #[macro_use]
 extern crate failure;
 
-use quick_xml::events::{BytesStart, Event};
+use quick_xml::events::{BytesStart, Event, attributes::Attribute};
 use quick_xml::{Reader, Writer};
 use std::convert::From;
 use std::f64::NAN;
 use std::io::{BufRead, Write};
+use std::str::FromStr;
 
 #[derive(Debug, Fail)]
 enum Error {
@@ -77,8 +78,8 @@ where
 }
 
 fn gpx_transform<R: BufRead, W: Write>(
-    reader: quick_xml::Reader<R>,
-    writer: quick_xml::Writer<W>,
+    reader: Reader<R>,
+    writer: Writer<W>,
     convert_fn: fn(f64, f64) -> (f64, f64),
 ) -> Result<()> {
     const LAT_NAME: &[u8] = b"lat";
@@ -91,37 +92,26 @@ fn gpx_transform<R: BufRead, W: Write>(
         let mut lon: f64 = NAN;
 
         for attr in elem.attributes() {
-            let attr = try!(attr);
-            if attr.key != LAT_NAME && attr.key != LON_NAME {
-                new_elem.push_attribute(attr);
-                continue;
-            }
-
-            let value = attr.unescape_and_decode_value(reader)?;
-            if let Ok(v) = value.parse::<f64>() {
-                match attr.key {
-                    b"lat" => {
-                        lat = v;
-                    }
-                    b"lon" => {
-                        lon = v;
-                    }
-                    _ => {
-                        panic!("shouldn't reach here");
-                    }
+            fn parse<T: FromStr, R: BufRead>(attr: Attribute, reader: &Reader<R>) -> Result<T> {
+                match attr.unescape_and_decode_value(reader)?.parse::<T>() {
+                    Ok(v) => Ok(v),
+                    Err(_) => Err(Error::ValueError(reader.buffer_position())),
                 }
-            } else {
-                return Err(Error::ValueError(reader.buffer_position()));
+            }
+
+            let attr = try!(attr);
+            match attr.key {
+                LAT_NAME => lat = parse(attr, reader)?,
+                LON_NAME => lon = parse(attr, reader)?,
+                _ => new_elem.push_attribute(attr),
             }
         }
 
-        if lat.is_nan() || lon.is_nan() {
-            return Err(Error::ValueError(reader.buffer_position()));
+        if !lat.is_nan() && !lon.is_nan() {
+            let (lat, lon) = convert_fn(lat, lon);
+            new_elem.push_attribute((LAT_NAME, lat.to_string().as_bytes()));
+            new_elem.push_attribute((LON_NAME, lon.to_string().as_bytes()));
         }
-
-        let (lat, lon) = convert_fn(lat, lon);
-        new_elem.push_attribute((LAT_NAME, lat.to_string().as_bytes()));
-        new_elem.push_attribute((LON_NAME, lon.to_string().as_bytes()));
         Ok(new_elem)
     })
 }
