@@ -1,0 +1,13 @@
+[package]
+name = "bin"
+version = "0.1.0"
+authors = ["Hugh Wang <hghwng@gmail.com>"]
+
+[dependencies]
+quick-xml = "0.12.1"
+undrift_gps = "0.1.1"
+converter = { path = "../converter" }
+
+[[bin]]
+name = "bin"
+path = "main.rs"

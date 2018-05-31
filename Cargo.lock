@@ -20,6 +20,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bin"
+version = "0.1.0"
+dependencies = [
+ "converter 0.1.0",
+ "quick-xml 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "undrift_gps 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -28,6 +37,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "cfg-if"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "converter"
+version = "0.1.0"
+dependencies = [
+ "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "quick-xml 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "encoding_rs"
@@ -120,15 +137,6 @@ dependencies = [
 name = "undrift_gps"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "undrift_gpx"
-version = "0.1.0"
-dependencies = [
- "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "quick-xml 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "undrift_gps 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "unicode-xid"

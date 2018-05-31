@@ -1,11 +1,8 @@
 extern crate quick_xml;
+extern crate converter;
 extern crate undrift_gps;
-#[macro_use]
-extern crate failure;
 
-mod convert;
-
-use convert::*;
+use converter::*;
 use undrift_gps::*;
 use quick_xml::{Reader, Writer};
 use std::env::args;
@@ -18,8 +15,8 @@ fn convert_file(input: &str, output: &str, func: ConvertFn) -> Result<()> {
     let reader = Reader::from_file(input)?;
     let output_file =
         File::create(output).or_else(|e| Err(Error::XMLError(quick_xml::Error::Io(e))))?;
-    let writer = Writer::new_with_indent(output_file, INDENT_CHAR, INDENT_LEVEL);
-    gpx_transform(reader, writer, func)
+    let mut writer = Writer::new_with_indent(output_file, INDENT_CHAR, INDENT_LEVEL);
+    gpx_transform(reader, &mut writer, func)
 }
 
 const FUNCS: &[(&str, ConvertFn)] = &[

@@ -1,8 +1,9 @@
+#[macro_use]
+extern crate failure;
 extern crate quick_xml;
 
 use quick_xml::events::{BytesStart, Event, attributes::Attribute};
 use quick_xml::{Reader, Writer};
-use std;
 use std::convert::From;
 use std::f64::NAN;
 use std::io::{BufRead, Write};
@@ -27,7 +28,7 @@ impl From<quick_xml::Error> for Error {
 
 fn xml_transform<R: BufRead, W: Write, F>(
     mut reader: Reader<R>,
-    mut writer: Writer<W>,
+    writer: &mut Writer<W>,
     levels: &[&[u8]],
     mut transformer: F,
 ) -> Result<()>
@@ -78,7 +79,7 @@ where
 
 pub fn gpx_transform<R: BufRead, W: Write>(
     reader: Reader<R>,
-    writer: Writer<W>,
+    writer: &mut Writer<W>,
     convert_fn: ConvertFn
 ) -> Result<()> {
     const LAT_NAME: &[u8] = b"lat";
