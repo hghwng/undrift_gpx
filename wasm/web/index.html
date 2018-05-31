@@ -1,0 +1,82 @@
+<html>
+    <head>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+        <script src="wasm.js"></script>
+    </head>
+    <body>
+        <select id="mode">
+            <optgroup label="常用">
+                <option value="gcj-wgs">火星 → 地球</option>
+                <option value="wgs-gcj">地球 → 火星</option>
+            </optgroup>
+            <optgroup label="全部">
+                <option value="bd-gcj">百度 → 国测局</option>
+                <option value="bd-wgs">百度 → 世界大地测量系统</option>
+                <option value="gcj-bd">国测局 → 百度</option>
+                <option value="gcj-wgs">国测局 → 世界大地测量系统</option>
+                <option value="wgs-bd">世界大地测量系统 → 百度</option>
+                <option value="wgs-gcj">世界大地测量系统 → 国测局</option>
+            </optgroup>
+        </select>
+        <a id="download" style="display:none"></a>
+        <input type="file" id="input" multiple onchange="handleFiles(this.files)">
+        <div id="log"></div>
+    </body>
+
+    <script>
+     function log(text) {
+         var elem = document.createElement("pre");
+         elem.innerHTML = text;
+         document.getElementById("log").appendChild(elem);
+     }
+
+     function init() {
+         log("[wasm] loading");
+         window.wasm_bindgen("wasm_bg.wasm")
+               .then(_ => log("[wasm] initialized"))
+               .catch(error => log(`[wasm] ${error}`));
+     }
+
+     function download(data, filename) {
+         var url = URL.createObjectURL(new Blob([data], {type: "octet/stream"}));
+         var download_elem = document.getElementById("download");
+         download_elem.href = url;
+         download_elem.download = filename;
+         download_elem.click();
+     }
+
+     function convert_file(file, mode) {
+         var filename = file.name;
+         var pos = filename.lastIndexOf('.');
+         if (pos !== -1) {
+             var ext = filename.substring(pos)
+             var name = filename.substring(0, pos);
+             filename = name + "(" + mode + ")" + ext;
+         }
+
+         var reader = new FileReader();
+         reader.onload = function(e) {
+             var input = reader.result;
+             var input = new Uint8Array(input, 0, input.length);
+             var r = window.wasm_bindgen.convert(input, mode)
+             var err = r.get_err();
+             if (err !== "") {
+                 log(`[conv] failed on ${file.name}, ${err}`);
+             } else {
+                 log(`[conv] succeeded on ${file.name}`);
+                 download(r.get_data(), filename)
+             }
+         }
+         reader.readAsArrayBuffer(file)
+     }
+
+     function handleFiles(files) {
+         var mode = document.getElementById("mode").value;
+         for (var i in files) {
+             convert_file(files[i], mode);
+         }
+     }
+
+     init();
+    </script>
+</html>
